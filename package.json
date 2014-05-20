@@ -1,0 +1,15 @@
+{
+  "name": "derby-hook",
+  "version": "0.0.1",
+  "description": "Derby store hook",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "derby",
+    "hook"
+  ],
+  "author": "Artur Zayats <zag2art@gmail.com>",
+  "license": "MIT"
+}
