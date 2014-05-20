@@ -10,6 +10,16 @@
     "derby",
     "hook"
   ],
-  "author": "Artur Zayats <zag2art@gmail.com>",
+  "author": {
+    "name": "Artur Zayats",
+    "email": "zag2art@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zag2art/derby-hook.git"
+  },
+  "bugs": {
+    "url": "git://github.com/zag2art/derby-hook/issues"
+  },
   "license": "MIT"
 }
