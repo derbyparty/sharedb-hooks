@@ -1,6 +1,6 @@
 {
   "name": "derby-hook",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Derby store hook",
   "main": "index.js",
   "scripts": {
