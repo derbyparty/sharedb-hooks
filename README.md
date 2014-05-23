@@ -13,7 +13,7 @@ server.js
   
   var derbyHook = require('derby-hook');
   
-  // Add 'hook' function in the store 
+  // Add 'hook' and 'onQuery' functions to the store 
   derbyHook(store);
   
   // ...
@@ -38,5 +38,14 @@ then you can use the function to hook model events, for example:
     // ....
     
   });
+  
+  store.hook('del', 'todos', function(docId, value, session, backend) {
+    model = store.createModel();
+    
+    // ....
+    
+  });
+  
+  
 ```
 
