@@ -60,17 +60,18 @@ module.exports = function(store) {
 
   };
 
-  store.onQuery = function(collectionName, source, cb) {
+  store.onQuery = function(collectionName, cb) {
     return this.shareClient.use('query', function(shareRequest, next) {
       var session;
-      if (shareRequest.options.backend !== source) {
-        return next();
-      }
+      
       session = shareRequest.agent.connectSession;
-      shareRequest.query = deepCopy(shareRequest.query);
+      
       if (collectionName === '*') {
         return cb(shareRequest.collection, shareRequest.query, session, next);
       } else {
+        if (shareRequest.collection !== collectionName) {
+          return next();
+        }  
         return cb(shareRequest.query, session, next);
       }
     });
