@@ -51,7 +51,7 @@ module.exports = function(store) {
             regExp = patternToRegExp(pattern);
             matches = regExp.exec(fullPath);
             if (matches) {
-              fn.apply(null, __slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
+              fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
             }
           }
       }
