@@ -30,7 +30,7 @@ module.exports = function(store) {
           if (!opData.del) {
             return next();
           }
-          fn(docName, shareRequest.prev.data, session, backend);
+          fn(docName, shareRequest, session, backend);
           break;
         case 'create':
           if (!opData.create) {
@@ -63,15 +63,15 @@ module.exports = function(store) {
   store.onQuery = function(collectionName, cb) {
     return this.shareClient.use('query', function(shareRequest, next) {
       var session;
-      
+
       session = shareRequest.agent.connectSession;
-      
+
       if (collectionName === '*') {
         return cb(shareRequest.collection, shareRequest.query, session, next);
       } else {
         if (shareRequest.collection !== collectionName) {
           return next();
-        }  
+        }
         return cb(shareRequest.query, session, next);
       }
     });
