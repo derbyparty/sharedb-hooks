@@ -40,18 +40,20 @@ module.exports = function(store) {
           break;
         case 'change':
           _ref = opData.op;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            op = _ref[_i];
-            segments = op.p;
-            if (op.si || op.sd) {
-              segments = segments.slice(0, -1);
-            }
-            relPath = segments.join('.');
-            fullPath = collectionName + '.' + docName + '.' + relPath;
-            regExp = patternToRegExp(pattern);
-            matches = regExp.exec(fullPath);
-            if (matches) {
-              fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
+          if (_ref) {
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              op = _ref[_i];
+              segments = op.p;
+              if (op.si || op.sd) {
+                segments = segments.slice(0, -1);
+              }
+              relPath = segments.join('.');
+              fullPath = collectionName + '.' + docName + '.' + relPath;
+              regExp = patternToRegExp(pattern);
+              matches = regExp.exec(fullPath);
+              if (matches) {
+                fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
+              }
             }
           }
       }
