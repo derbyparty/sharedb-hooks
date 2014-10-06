@@ -2,7 +2,7 @@
 
 The way to hook db-interactions on the server
 
-### Ussage
+### Usage
 
 First you should require the package and init it:
 
