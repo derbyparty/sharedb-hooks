@@ -2,51 +2,48 @@
 module.exports = function(store) {
 
   store.hook = function(method, pattern, fn) {
-    return store.shareClient.use('after submit', function(shareRequest, next) {
-      var backend, collectionName, docName, firstDot, fullPath, matches, op, opData, regExp, relPath, segments, session, snapshot, _i, _len, _ref;
-      opData = shareRequest.opData;
+    var emitter = store.backend || store.shareClient;
+
+    emitter.use('after submit', function(shareRequest, next) {
+      var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
+
+      var opData = shareRequest.opData || shareRequest.op;
+
       if (opData.del || opData.create) {
         collectionName = pattern;
-        if (collectionName !== shareRequest.collection) {
-          return next();
-        }
+        if (collectionName !== shareRequest.collection) return next();
       } else {
         firstDot = pattern.indexOf('.');
         if (firstDot === -1) {
-          if (!patternToRegExp(pattern).test(collectionName)) {
-            return next();
-          }
+          if (!patternToRegExp(pattern).test(shareRequest.collection)) return next();
         } else {
           collectionName = pattern.slice(0, firstDot);
-          if (collectionName !== shareRequest.collection) {
-            return next();
-          }
+          if (collectionName !== shareRequest.collection) return next();
         }
       }
-      snapshot = shareRequest.snapshot, docName = shareRequest.docName, backend = shareRequest.backend;
-      session = shareRequest.agent.connectSession;
+
+      var snapshot = shareRequest.snapshot;
+      var docName = shareRequest.docName || shareRequest.id;
+      var backend = shareRequest.backend;
+      var session = shareRequest.agent.connectSession;
+
       switch (method) {
         case 'del':
-          if (!opData.del) {
-            return next();
-          }
+          if (!opData.del) return next();
           fn(docName, shareRequest, session, backend);
           break;
         case 'create':
-          if (!opData.create) {
-            return next();
-          }
+          if (!opData.create) return next();
           fn(docName, shareRequest.snapshot.data, session, backend);
           break;
         case 'change':
-          _ref = opData.op;
-          if (_ref) {
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              op = _ref[_i];
+          var ops = opData.op;
+          if (ops) {
+            for (var i = 0; i < ops.length; i++) {
+              op = ops[i];
               segments = op.p;
-              if (op.si || op.sd) {
-                segments = segments.slice(0, -1);
-              }
+              if (op.si || op.sd) segments = segments.slice(0, -1);
+
               relPath = segments.join('.');
               fullPath = collectionName + '.' + docName + '.' + relPath;
               regExp = patternToRegExp(pattern);
@@ -57,28 +54,29 @@ module.exports = function(store) {
             }
           }
       }
-      return next();
+      next();
     });
 
   };
 
   store.onQuery = function(collectionName, cb) {
-    return this.shareClient.use('query', function(shareRequest, next) {
-      var session;
+    var emitter = store.backend || store.shareClient;
 
-      session = shareRequest.agent.connectSession;
+    emitter.use('query', function(shareRequest, next) {
+
+      var session = shareRequest.agent.connectSession;
 
       if (collectionName === '*') {
         return cb(shareRequest.collection, shareRequest.query, session, next);
-      } else {
-        if (shareRequest.collection !== collectionName) {
-          return next();
-        }
-        return cb(shareRequest.query, session, next);
       }
+
+      if (shareRequest.collection !== collectionName) return next();
+
+      cb(shareRequest.query, session, next);
+
     });
   };
-  return true;
+
 };
 
 
