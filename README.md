@@ -9,12 +9,11 @@ First you should require the package and init it:
 server.js
 
 ```js
-  // ...
-  
-  var shareDbHooks = require('sharedb-hooks');
   
   // Add 'hook' and 'onQuery' functions to the store 
-  shareDbHooks(store);
+  derby.use(require('sharedb-hooks'));
+  or 
+  racer.use(require('sharedb-hooks'));
   
   // ...
 ```

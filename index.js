@@ -1,83 +1,88 @@
 
-module.exports = function(store) {
+module.exports = function(racer) {
+  racer.on('store', function(store) {
+    store.hook = hook.bind(store);
+    store.onQuery = onQuery.bind(store);
+  });
+};
 
-  store.hook = function(method, pattern, fn) {
-    var emitter = store.backend || store.shareClient;
+function onQuery(collectionName, cb) {
+  var store = this;
+  var emitter = store.backend || store.shareClient;
 
-    emitter.use('after submit', function(shareRequest, next) {
-      var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
+  emitter.use('query', function (shareRequest, next) {
 
-      var opData = shareRequest.opData || shareRequest.op;
+    var session = shareRequest.agent.connectSession;
 
-      if (opData.del || opData.create) {
-        collectionName = pattern;
-        if (collectionName !== shareRequest.collection) return next();
+    if (collectionName === '*') {
+      return cb(shareRequest.collection, shareRequest.query, session, next);
+    }
+
+    if (shareRequest.collection !== collectionName) return next();
+
+    cb(shareRequest.query, session, next);
+
+  });
+}
+
+
+function hook(method, pattern, fn) {
+  var store = this;
+  var emitter = store.backend || store.shareClient;
+
+  emitter.use('after submit', function (shareRequest, next) {
+    var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
+
+    var opData = shareRequest.opData || shareRequest.op;
+
+    if (opData.del || opData.create) {
+      collectionName = pattern;
+      if (collectionName !== shareRequest.collection) return next();
+    } else {
+      firstDot = pattern.indexOf('.');
+      if (firstDot === -1) {
+        if (!patternToRegExp(pattern).test(shareRequest.collection)) return next();
       } else {
-        firstDot = pattern.indexOf('.');
-        if (firstDot === -1) {
-          if (!patternToRegExp(pattern).test(shareRequest.collection)) return next();
-        } else {
-          collectionName = pattern.slice(0, firstDot);
-          if (collectionName !== shareRequest.collection) return next();
-        }
+        collectionName = pattern.slice(0, firstDot);
+        if (collectionName !== shareRequest.collection) return next();
       }
+    }
 
-      var snapshot = shareRequest.snapshot;
-      var docName = shareRequest.docName || shareRequest.id;
-      var backend = shareRequest.backend;
-      var session = shareRequest.agent.connectSession;
+    var snapshot = shareRequest.snapshot;
+    var docName = shareRequest.docName || shareRequest.id;
+    var backend = shareRequest.backend;
+    var session = shareRequest.agent.connectSession;
 
-      switch (method) {
-        case 'del':
-          if (!opData.del) return next();
-          fn(docName, shareRequest, session, backend);
-          break;
-        case 'create':
-          if (!opData.create) return next();
-          fn(docName, shareRequest.snapshot.data, session, backend);
-          break;
-        case 'change':
-          var ops = opData.op;
-          if (ops) {
-            for (var i = 0; i < ops.length; i++) {
-              op = ops[i];
-              segments = op.p;
-              if (op.si || op.sd) segments = segments.slice(0, -1);
+    switch (method) {
+      case 'del':
+        if (!opData.del) return next();
+        fn(docName, shareRequest, session, backend);
+        break;
+      case 'create':
+        if (!opData.create) return next();
+        fn(docName, shareRequest.snapshot.data, session, backend);
+        break;
+      case 'change':
+        var ops = opData.op;
+        if (ops) {
+          for (var i = 0; i < ops.length; i++) {
+            op = ops[i];
+            segments = op.p;
+            if (op.si || op.sd) segments = segments.slice(0, -1);
 
-              relPath = segments.join('.');
-              fullPath = collectionName + '.' + docName + '.' + relPath;
-              regExp = patternToRegExp(pattern);
-              matches = regExp.exec(fullPath);
-              if (matches) {
-                fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
-              }
+            relPath = segments.join('.');
+            fullPath = collectionName + '.' + docName + '.' + relPath;
+            regExp = patternToRegExp(pattern);
+            matches = regExp.exec(fullPath);
+            if (matches) {
+              fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
             }
           }
-      }
-      next();
-    });
-
-  };
-
-  store.onQuery = function(collectionName, cb) {
-    var emitter = store.backend || store.shareClient;
-
-    emitter.use('query', function(shareRequest, next) {
-
-      var session = shareRequest.agent.connectSession;
-
-      if (collectionName === '*') {
-        return cb(shareRequest.collection, shareRequest.query, session, next);
-      }
-
-      if (shareRequest.collection !== collectionName) return next();
-
-      cb(shareRequest.query, session, next);
-
-    });
-  };
-
-};
+        }
+    }
+    next();
+  });
+}
 
 
 function patternToRegExp(pattern) {
@@ -90,7 +95,7 @@ function patternToRegExp(pattern) {
   }
   pattern = pattern.replace(/\./g, "\\.").replace(/\*/g, "([^.]*)");
   return new RegExp(pattern + (end ? '.*' : '$'));
-};
+}
 
 function lookup(segments, doc) {
   var curr, part, _i, _len;
@@ -102,4 +107,4 @@ function lookup(segments, doc) {
     }
   }
   return curr;
-};
+}
