@@ -1,16 +1,13 @@
 
-module.exports = function(racer) {
-  racer.on('store', function(store) {
-    store.hook = hook.bind(store);
-    store.onQuery = onQuery.bind(store);
-  });
+module.exports = function(backend) {
+  backend.hook = hook.bind(backend);
+  backend.onQuery = onQuery.bind(backend);
 };
 
 function onQuery(collectionName, cb) {
-  var store = this;
-  var emitter = store.backend || store.shareClient;
+  var backend = this;
 
-  emitter.use('query', function (shareRequest, next) {
+  backend.use('query', function (shareRequest, next) {
 
     var session = shareRequest.agent.connectSession;
 
@@ -27,10 +24,9 @@ function onQuery(collectionName, cb) {
 
 
 function hook(method, pattern, fn) {
-  var store = this;
-  var emitter = store.backend || store.shareClient;
+  var backend = this;
 
-  emitter.use('after submit', function (shareRequest, next) {
+  backend.use('after submit', function (shareRequest, next) {
     var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
 
     var opData = shareRequest.opData || shareRequest.op;

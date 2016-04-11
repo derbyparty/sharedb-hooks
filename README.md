@@ -10,10 +10,8 @@ server.js
 
 ```js
   
-  // Add 'hook' and 'onQuery' functions to the store 
-  derby.use(require('sharedb-hooks'));
-  or 
-  racer.use(require('sharedb-hooks'));
+  // Add 'hook' and 'onQuery' functions to the backend 
+  require('sharedb-hooks')(backend);
   
   // ...
 ```
@@ -22,24 +20,24 @@ then you can use the function to hook model events, for example:
 
 ```js
   
-  store.hook('create', 'todos', function(docId, value, session, backend) {
-    model = store.createModel();
+  backend.hook('create', 'todos', function(docId, value, session, backend) {
+    model = backend.createModel();
     model.fetch ('todos.'+docId, function(err){
       var time = +new Date();
       model.set('todos.'+docId+'.ctime', time);
     })
   });
   
-  store.hook('change', 'users.*.location', function(docId, value, op, session, backend){
-    model = store.createModel()
+  backend.hook('change', 'users.*.location', function(docId, value, op, session, backend){
+    model = backend.createModel()
     console.log('User change location HOOK');
     
     // ....
     
   });
   
-  store.hook('del', 'todos', function(docId, value, session, backend) {
-    model = store.createModel();
+  backend.hook('del', 'todos', function(docId, value, session, backend) {
+    model = backend.createModel();
     
     // ....
     
@@ -48,6 +46,6 @@ then you can use the function to hook model events, for example:
   
 ```
 
-## MIT License 2015
+## MIT License 2016
 
 
