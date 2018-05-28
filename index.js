@@ -50,7 +50,7 @@ function hook(method, pattern, fn) {
 
     if (method === 'update') {
       if (shareRequest.collection !== pattern) return next()
-      fn(docName, snapshot.data, shareRequest.originalSnapshot && shareRequest.originalSnapshot.data, session, backend);
+      fn(docName, snapshot.data, shareRequest.originalSnapshot && shareRequest.originalSnapshot.data, session, backend, shareRequest);
       return next()
     }
     if (opData.del || opData.create) {
