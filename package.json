@@ -21,5 +21,8 @@
   "bugs": {
     "url": "git://github.com/zag2art/derby-hook/issues"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.10"
+  }
 }

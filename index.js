@@ -1,4 +1,4 @@
-
+var _ = require('lodash')
 module.exports = function(backend) {
   backend.hook = hook.bind(backend);
   backend.onQuery = onQuery.bind(backend);
@@ -26,11 +26,33 @@ function onQuery(collectionName, cb) {
 function hook(method, pattern, fn) {
   var backend = this;
 
+  backend.use('apply', function(shareRequest, done) {
+    const stream = shareRequest.agent.stream || {}
+
+    const opData = shareRequest.op
+    const snapshot = shareRequest.snapshot
+
+    if (!opData.create && !opData.del && !shareRequest.originalSnapshot){
+      shareRequest.originalSnapshot = _.cloneDeep(snapshot)
+    }
+
+    done()
+  })
+
   backend.use('after submit', function (shareRequest, next) {
     var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
 
     var opData = shareRequest.opData || shareRequest.op;
+    var snapshot = shareRequest.snapshot;
+    var docName = shareRequest.docName || shareRequest.id;
+    var backend = shareRequest.backend;
+    var session = shareRequest.agent.connectSession;
 
+    if (method === 'update') {
+      if (shareRequest.collection !== pattern) return next()
+      fn(docName, snapshot.data, shareRequest.originalSnapshot && shareRequest.originalSnapshot.data, session, backend);
+      return next()
+    }
     if (opData.del || opData.create) {
       collectionName = pattern;
       if (collectionName !== shareRequest.collection) return next();
@@ -43,11 +65,6 @@ function hook(method, pattern, fn) {
         if (collectionName !== shareRequest.collection) return next();
       }
     }
-
-    var snapshot = shareRequest.snapshot;
-    var docName = shareRequest.docName || shareRequest.id;
-    var backend = shareRequest.backend;
-    var session = shareRequest.agent.connectSession;
 
     switch (method) {
       case 'del':
