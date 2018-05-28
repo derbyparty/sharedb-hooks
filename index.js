@@ -20,24 +20,21 @@ function onQuery(collectionName, cb) {
     cb(shareRequest.query, session, next);
 
   });
-}
-
-
-function hook(method, pattern, fn) {
-  var backend = this;
-
   backend.use('apply', function(shareRequest, done) {
-    const stream = shareRequest.agent.stream || {}
-
     const opData = shareRequest.op
     const snapshot = shareRequest.snapshot
 
-    if (!opData.create && !opData.del && !shareRequest.originalSnapshot){
+    if (!opData.create && !shareRequest.originalSnapshot){
       shareRequest.originalSnapshot = _.cloneDeep(snapshot)
     }
 
     done()
   })
+}
+
+
+function hook(method, pattern, fn) {
+  var backend = this;
 
   backend.use('after submit', function (shareRequest, next) {
     var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
@@ -48,7 +45,7 @@ function hook(method, pattern, fn) {
     var backend = shareRequest.backend;
     var session = shareRequest.agent.connectSession;
 
-    if (method === 'update') {
+    if (method === 'update' && !opData.del && !opData.create) {
       if (shareRequest.collection !== pattern) return next()
       fn(docName, snapshot.data, shareRequest.originalSnapshot && shareRequest.originalSnapshot.data, session, backend, shareRequest);
       return next()
@@ -69,11 +66,11 @@ function hook(method, pattern, fn) {
     switch (method) {
       case 'del':
         if (!opData.del) return next();
-        fn(docName, shareRequest, session, backend);
+        fn(docName, shareRequest.originalSnapshot && shareRequest.originalSnapshot.data, session, backend, shareRequest);
         break;
       case 'create':
         if (!opData.create) return next();
-        fn(docName, shareRequest.snapshot.data, session, backend);
+        fn(docName, shareRequest.snapshot.data, session, backend, shareRequest);
         break;
       case 'change':
         var ops = opData.op;
@@ -88,7 +85,7 @@ function hook(method, pattern, fn) {
             regExp = patternToRegExp(pattern);
             matches = regExp.exec(fullPath);
             if (matches) {
-              fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend]));
+              fn.apply(null, Array.prototype.slice.call(matches.slice(1)).concat([lookup(segments, snapshot.data)], [op], [session], [backend], [shareRequest]));
             }
           }
         }
