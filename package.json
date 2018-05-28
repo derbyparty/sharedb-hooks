@@ -1,6 +1,6 @@
 {
   "name": "sharedb-hooks",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "ShareDb hooks",
   "main": "index.js",
   "scripts": {
