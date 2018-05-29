@@ -2,6 +2,19 @@ var _ = require('lodash')
 module.exports = function(backend) {
   backend.hook = hook.bind(backend);
   backend.onQuery = onQuery.bind(backend);
+
+  backend.use('apply', function(shareRequest, done) {
+    console.log('apply', shareRequest.snapshot)
+    const opData = shareRequest.op
+    const snapshot = shareRequest.snapshot
+
+    if (!opData.create && !shareRequest.originalSnapshot){
+      shareRequest.originalSnapshot = _.cloneDeep(snapshot)
+    }
+
+    done()
+  })
+
 };
 
 function onQuery(collectionName, cb) {
@@ -20,16 +33,7 @@ function onQuery(collectionName, cb) {
     cb(shareRequest.query, session, next);
 
   });
-  backend.use('apply', function(shareRequest, done) {
-    const opData = shareRequest.op
-    const snapshot = shareRequest.snapshot
 
-    if (!opData.create && !shareRequest.originalSnapshot){
-      shareRequest.originalSnapshot = _.cloneDeep(snapshot)
-    }
-
-    done()
-  })
 }
 
 
