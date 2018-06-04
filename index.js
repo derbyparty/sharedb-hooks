@@ -4,7 +4,6 @@ module.exports = function(backend) {
   backend.onQuery = onQuery.bind(backend);
 
   backend.use('apply', function(shareRequest, done) {
-    console.log('apply', shareRequest.snapshot)
     const opData = shareRequest.op
     const snapshot = shareRequest.snapshot
 
