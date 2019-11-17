@@ -39,7 +39,7 @@ function onQuery(collectionName, cb) {
 function hook(method, pattern, fn) {
   var backend = this;
 
-  backend.use('after submit', function (shareRequest, next) {
+  backend.use('afterSubmit', function (shareRequest, next) {
     var collectionName, firstDot, fullPath, matches, regExp, relPath, segments, op;
 
     var opData = shareRequest.opData || shareRequest.op;
